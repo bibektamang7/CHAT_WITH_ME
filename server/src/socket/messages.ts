@@ -1,0 +1,11 @@
+export const CONNECTED_EVENT = "connected";
+export const DISCONNECT_EVENT = "disconnect";
+export const JOIN_CHAT_EVENT = "joinChat";
+export const LEAVE_CHAT_EVENT = "leaveChat";
+export const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
+export const MESSAGE_RECEIVED_EVENT = "messageReveived";
+export const NEW_CHAT_EVENT = "newChat";
+export const SOCKET_ERROR_EVENT = "socketError";
+export const STOP_TYPING_EVENT = "stopTyping";
+export const TYPING_EVENT = "typing";
+export const MESSAGE_DELETE_EVENT = "messageDeleted";
