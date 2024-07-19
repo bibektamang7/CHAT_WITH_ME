@@ -21,5 +21,4 @@ export class CustomWebsocket {
     this.ws.listen(event, callback);
   }
 
-  // Add other WebSocket methods as needed (send, close, etc.)
 }

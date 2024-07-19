@@ -1,42 +1,19 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
-import { CustomWebsocket } from "./utils/CustomWebsocket";
-
-
-const CONNECTED_EVENT = "connected";
-const DISCONNECT_EVENT = "disconnect";
-const JOIN_CHAT_EVENT = "joinChat";
-const NEW_CHAT_EVENT = "newChat";
-const TYPING_EVENT = "typing";
-const STOP_TYPING_EVENT = "stopTyping";
-const MESSAGE_RECEIVED_EVENT = "messageReceived";
-const LEAVE_CHAT_EVENT = "leaveChat";
-const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
-const MESSAGE_DELETE_EVENT = "messageDeleted";
-
+import React from "react";
+import {Routes, Route, Navigate } from "react-router-dom"
+import Login from "./pages/Login";
+import Chat from "./pages/Chat";
 
 function App() {
-  // const socket = new CustomWebsocket("ws://localhost:8080");
-  const socket = new WebSocket("ws://localhost:8080");
-  useEffect(() => {
-    socket.onmessage = function (event) {
-      const message = JSON.parse(event.data);
-      if (message.event === TYPING_EVENT) {
-        console.log(message.data);
-        
-      }
-    }
-  }, [socket]);
+
+  const token = '';
+  const user = {};
   return (
-    <div className="App">
-      <input
-        type="text"
-        onChange={(e) => {
-          socket.send(JSON.stringify({event:TYPING_EVENT,data:"Im typing"}))
-        }}
-      />
-    </div>
-  );
+    <Routes>
+      <Route path="/" element={token && user ? (<Navigate to={'/chat'}/>) : (<Navigate to={'/login'}/>)}></Route>
+      <Route path="/chat" element={<Chat/>} />
+      <Route path="/login" element={<Login/>} />
+    </Routes>
+  )
 }
 
 export default App;
