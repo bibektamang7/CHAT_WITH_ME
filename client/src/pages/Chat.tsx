@@ -1,12 +1,12 @@
 import React from 'react'
 import { Navigator } from './widgets/Navigator'
-import { UserMessages } from './widgets/UserMessages'
 import { ChatMessage } from './widgets/ChatMessage'
-function Chat() {
+import { Outlet } from 'react-router-dom'
+const Chat = () => {
   return (
-    <div className='w-full h-[100%] max-h-[100vh] flex'>
+    <div className='w-full h-[100vh] max-h-[100vh] flex'>
       <Navigator/>
-      <UserMessages/>
+      <Outlet/>
       <ChatMessage/>
     </div>
   )
