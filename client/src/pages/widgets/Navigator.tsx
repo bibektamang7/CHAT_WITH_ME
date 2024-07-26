@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import MyImage from "../../assets/cropped-IMG_5624_2.jpg";
 
 //navigation icons
@@ -29,7 +28,7 @@ const navigationIcon = [
 
 const Navigator = () => {
   return (
-    <div className="w-[4%] h-full bg-slate-700">
+    <div className="md:block md:w-[4%] h-full bg-slate-700 hidden">
       <div className="w-full h-full px-2 py-4 flex flex-col justify-between items-center">
         
         <div className="flex gap-4 flex-col">
