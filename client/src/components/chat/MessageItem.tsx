@@ -43,8 +43,6 @@ const MessageItem: React.FC<{
                 onClick={() => setopenOptions(!openOptions)}
                 className="self-center relative options-button"
                           >
-                              
-                              
               </button>
             ) : null}
           </div>

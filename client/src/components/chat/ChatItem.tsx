@@ -16,8 +16,6 @@ const ChatItem: React.FC<{
   isOnline = true,
   unreadCount = 0,
   onChatDelete,
-}: {
-  isOnline: boolean;
 }) => {
   const { user } = useAuth();
   const [openOptions, setOpenOptions] = useState(false);

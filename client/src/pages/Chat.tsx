@@ -8,10 +8,12 @@ import { useAuth } from "@/context/AuthContext";
 import { LocalStorage, requestHandler } from "@/utils";
 import { deleteMessage, getChatMessages, getUserChats, sendMessage } from "@/api";
 import { useSocket } from "@/hooks/useSocket";
+import { CustomWebsocket } from "@/utils/CustomWebsocket";
 
 const Chat = () => {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const socket = new CustomWebsocket("ws://localhost:8080");
+  // const { socket } = useSocket();
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

@@ -13,6 +13,6 @@ export const ChatEventEnum = Object.freeze({
   SOCKET_ERROR_EVENT : "socketError",
   STOP_TYPING_EVENT : "stopTyping",
   TYPING_EVENT : "typing",
-  MEssage_DELETE_EVENT : "messageDeleted",
+  MESSAGE_DELETE_EVENT : "messageDeleted",
 })
 
