@@ -7,13 +7,24 @@ import { ChatListItemInterface, ChatMessageInterface } from "@/interfaces/chat";
 import { useAuth } from "@/context/AuthContext";
 import { LocalStorage, requestHandler } from "@/utils";
 import { deleteMessage, getChatMessages, getUserChats, sendMessage } from "@/api";
-import { useSocket } from "@/hooks/useSocket";
+
 import { CustomWebsocket } from "@/utils/CustomWebsocket";
+
+const CONNECTED_EVENT = "connected";
+const DISCONNECT_EVENT = "disconnect";
+const JOIN_CHAT_EVENT = "joinChat";
+const LEAVE_CHAT_EVENT = "leaveChat";
+const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
+const MESSAGE_RECEIVED_EVENT = "messageReveived";
+const NEW_CHAT_EVENT = "newChat";
+// const SOCKET_ERROR_EVENT = "socketError";
+const STOP_TYPING_EVENT = "stopTyping";
+const TYPING_EVENT = "typing";
+const MESSAGE_DELETE_EVENT = "messageDeleted";
 
 const Chat = () => {
   const { user } = useAuth();
   const socket = new CustomWebsocket("ws://localhost:8080");
-  // const { socket } = useSocket();
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -95,7 +106,7 @@ const Chat = () => {
     // Check if socket is available, if not, show an alert
     //  if (!socket) return alert("Socket not available");
     // Emit an event to join the current chat
-    // socket.emit(JOIN_CHAT_EVENT, currentChat.current?._id);
+    socket.emit(JOIN_CHAT_EVENT, currentChat.current?._id);
 
     // Filter out unread messages from the current chat as those will be read
     setUnreadMessages(
@@ -281,43 +292,43 @@ const Chat = () => {
     }
   }, []);
 
-  //  // This useEffect handles the setting up and tearing down of socket event listeners.
-  //  useEffect(() => {
-  //   // If the socket isn't initialized, we don't set up listeners.
-  //   if (!socket) return;
+   // This useEffect handles the setting up and tearing down of socket event listeners.
+   useEffect(() => {
+    // If the socket isn't initialized, we don't set up listeners.
+    if (!socket) return;
 
-  //   // Set up event listeners for various socket events:
-  //   // Listener for when the socket connects.
-  //   socket.on(CONNECTED_EVENT, onConnect);
-  //   // Listener for when the socket disconnects.
-  //   socket.on(DISCONNECT_EVENT, onDisconnect);
-  //   // Listener for when a user is typing.
-  //   socket.on(TYPING_EVENT, handleOnSocketTyping);
-  //   // Listener for when a user stops typing.
-  //   socket.on(STOP_TYPING_EVENT, handleOnSocketStopTyping);
-  //   // Listener for when a new message is received.
-  //   socket.on(MESSAGE_RECEIVED_EVENT, onMessageReceived);
-  //   // Listener for the initiation of a new chat.
-  //   socket.on(NEW_CHAT_EVENT, onNewChat);
-  //   // Listener for when a user leaves a chat.
-  //   socket.on(LEAVE_CHAT_EVENT, onChatLeave);
-  //   // Listener for when a group's name is updated.
-  //   socket.on(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
-  //   //Listener for when a message is deleted
-  //   socket.on(MESSAGE_DELETE_EVENT, onMessageDelete);
-  //   // When the component using this hook unmounts or if `socket` or `chats` change:
-  //   return () => {
-  //     // Remove all the event listeners we set up to avoid memory leaks and unintended behaviors.
-  //     socket.off(CONNECTED_EVENT, onConnect);
-  //     socket.off(DISCONNECT_EVENT, onDisconnect);
-  //     socket.off(TYPING_EVENT, handleOnSocketTyping);
-  //     socket.off(STOP_TYPING_EVENT, handleOnSocketStopTyping);
-  //     socket.off(MESSAGE_RECEIVED_EVENT, onMessageReceived);
-  //     socket.off(NEW_CHAT_EVENT, onNewChat);
-  //     socket.off(LEAVE_CHAT_EVENT, onChatLeave);
-  //     socket.off(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
-  //     socket.off(MESSAGE_DELETE_EVENT, onMessageDelete);
-  //   };
+    // Set up event listeners for various socket events:
+    // Listener for when the socket connects.
+    socket.on(CONNECTED_EVENT, onConnect);
+    // Listener for when the socket disconnects.
+    socket.on(DISCONNECT_EVENT, onDisconnect);
+    // Listener for when a user is typing.
+    socket.on(TYPING_EVENT, handleOnSocketTyping);
+    // Listener for when a user stops typing.
+    socket.on(STOP_TYPING_EVENT, handleOnSocketStopTyping);
+    // Listener for when a new message is received.
+    socket.on(MESSAGE_RECEIVED_EVENT, onMessageReceived);
+    // Listener for the initiation of a new chat.
+    socket.on(NEW_CHAT_EVENT, onNewChat);
+    // Listener for when a user leaves a chat.
+    socket.on(LEAVE_CHAT_EVENT, onChatLeave);
+    // Listener for when a group's name is updated.
+    // socket.on(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
+    //Listener for when a message is deleted
+    socket.on(MESSAGE_DELETE_EVENT, onMessageDelete);
+    // When the component using this hook unmounts or if `socket` or `chats` change:
+    return () => {
+      // Remove all the event listeners we set up to avoid memory leaks and unintended behaviors.
+      socket.off(CONNECTED_EVENT, onConnect);
+      socket.off(DISCONNECT_EVENT, onDisconnect);
+      socket.off(TYPING_EVENT, handleOnSocketTyping);
+      socket.off(STOP_TYPING_EVENT, handleOnSocketStopTyping);
+      socket.off(MESSAGE_RECEIVED_EVENT, onMessageReceived);
+      socket.off(NEW_CHAT_EVENT, onNewChat);
+      socket.off(LEAVE_CHAT_EVENT, onChatLeave);
+      // socket.off(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
+      socket.off(MESSAGE_DELETE_EVENT, onMessageDelete);
+    };
 
     // Note:
     // The `chats` array is used in the `onMessageReceived` function.
@@ -326,8 +337,8 @@ const Chat = () => {
     // This will not cause infinite renders because the functions in the socket are getting mounted and not executed.
     // So, even if some socket callbacks are updating the `chats` state, it's not
     // updating on each `useEffect` call but on each socket call.
-  // }, [socket, chats]);
-
+  }, [socket, chats]);
+  
   return (
     <div className="w-full h-[100vh] max-h-[100vh] flex">
       <Navigator />

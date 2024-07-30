@@ -1,75 +1,65 @@
-// utils/CustomWebsocket.ts
-// WebSocket.prototype.listen = function (event: string, callback: (data: any) => void) {
-//   this._socketListeners = this._socketListeners || {};
-//   this._socketListeners[event] = this._socketListeners[event] || [];
-//   this._socketListeners[event].push(callback);
-
-import { Socket } from "dgram";
-
-// };
+type EventHandler = (...args: any[]) => void;
+type EventHandlers = { [event: string]: EventHandler[] };
 
 
-const CONNECTED_EVENT = "connected";
-const DISCONNECT_EVENT = "disconnect";
-const JOIN_CHAT_EVENT = "joinChat";
-const LEAVE_CHAT_EVENT = "leaveChat";
-const UPDATE_GROUP_NAME_EVENT = "updateGroupName";
-const MESSAGE_RECEIVED_EVENT = "messageReveived";
-const NEW_CHAT_EVENT = "newChat";
-const SOCKET_ERROR_EVENT = "socketError";
-const STOP_TYPING_EVENT = "stopTyping";
-const TYPING_EVENT = "typing";
-const MESSAGE_DELETE_EVENT = "messageDeleted";
-
-export class CustomWebsocket {
-  private ws: WebSocket;
+export class CustomWebsocket{
+    private ws: WebSocket;
+  private eventHandlers: EventHandlers = {};
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
+
+    this.ws.onmessage = (message) => {
+      this.handleMessage(message);
+    };
+
+    this.ws.onopen = () => {
+      this.triggerEvent('connected');
+    };
+
+    this.ws.onclose = () => {
+      this.triggerEvent('disconnect');
+    };
+
+    this.ws.onerror = (error) => {
+      this.triggerEvent('error', error);
+    };
   }
 
-  emit(event: string, data?: any) {
-    this.ws.send(JSON.stringify({ event, data }));
-  }
-
-  listen() {
-    this.ws.onmessage = (event) => {
-      const {socketEvent, data} = JSON.parse(event.data);
-      switch (socketEvent) {
-        case CONNECTED_EVENT: {
-          break;
-        }
-        case DISCONNECT_EVENT: {
-          break;
-        }
-        case JOIN_CHAT_EVENT: {
-          break;
-        }
-        case LEAVE_CHAT_EVENT: {
-          break;
-        }
-        case UPDATE_GROUP_NAME_EVENT: {
-          break;
-        }
-        case MESSAGE_RECEIVED_EVENT: {
-          break;
-        }
-        case NEW_CHAT_EVENT: {
-          break;
-        }
-        case SOCKET_ERROR_EVENT: {
-          break;
-        }
-        case STOP_TYPING_EVENT: {
-          break;
-        }
-        case MESSAGE_DELETE_EVENT: {
-          break;
-        }
-        case TYPING_EVENT: {
-          break;
-        }
-      }
+  private handleMessage(message: MessageEvent) {
+    try {
+      const { event, data } = JSON.parse(message.data);
+      this.triggerEvent(event, data);
+    } catch (error) {
+      console.error('Error handling message:', error);
     }
+  }
+
+  private triggerEvent(event: string, ...args: any[]) {
+    if (this.eventHandlers[event]) {
+      this.eventHandlers[event].forEach(handler => handler(...args));
+    }
+  }
+
+  public on(event: string, handler: EventHandler) {
+    if (!this.eventHandlers[event]) {
+      this.eventHandlers[event] = [];
+    }
+    this.eventHandlers[event].push(handler);
+  }
+
+  public off(event: string, handler: EventHandler) {
+    if (!this.eventHandlers[event]) return;
+
+    this.eventHandlers[event] = this.eventHandlers[event].filter(h => h !== handler);
+  }
+
+  public emit(event: string, data: any) {
+    const message = JSON.stringify({ event, data });
+    this.ws.send(message);
+  }
+
+  public close() {
+    this.ws.close();
   }
 }

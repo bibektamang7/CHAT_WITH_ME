@@ -5,6 +5,8 @@ import url from "url";
 import { createServer } from "http";
 import { ChatManager } from "./ChatManager";
 import { socketManager, User } from "./socketManager";
+
+
 import { CONNECTED_EVENT, JOIN_CHAT_EVENT, LEAVE_CHAT_EVENT, MESSAGE_RECEIVED_EVENT } from "./messages";
 const server = createServer(app);
 
@@ -13,7 +15,7 @@ const chatManager = new ChatManager();
 const wss = new WebSocketServer({ server });
 wss.on("connection", function connection(ws,req) {
   ws.on("error", console.error);
-  const userDetails = req.user;
+  const userDetails =  {username: "Bibek", _id: "123"};
   const user = new User(ws, userDetails._id, userDetails.username);
   socketManager.handleEvent(CONNECTED_EVENT, user);
 

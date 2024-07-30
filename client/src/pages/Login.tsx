@@ -1,12 +1,17 @@
+import { useAuth } from "@/context/AuthContext";
 import React, { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const { login } = useAuth();
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log(email, password);
+    const data = { username: username, password: password };
+    
+    await login(data);
   };
 
   return (
@@ -42,10 +47,10 @@ function Login() {
                   <div className="mt-2">
                     <input
                       className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      type="text"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                     />
                   </div>
                 </div>
@@ -90,9 +95,9 @@ function Login() {
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       className="ml-2"
                     >
                       <line

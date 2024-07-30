@@ -5,14 +5,16 @@ import { classNames } from "@/utils";
 import React from "react";
 const ChatMessage: React.FC<{
     user: UserInterface
-    currentChat: ChatListItemInterface;
+    currentChat?: ChatListItemInterface;
     messages: ChatMessageInterface[];
     deleteChatMessage: (message: ChatMessageInterface) => Promise<void>;
 }> = ({ currentChat, messages,user, deleteChatMessage }) => {
+  console.log(currentChat);
+  
   return (
     <div className="w-full">
       <div className="p-7">
-        {currentChat._id ? (
+        {currentChat?._id ? (
           <>
             <div
               className={classNames(
