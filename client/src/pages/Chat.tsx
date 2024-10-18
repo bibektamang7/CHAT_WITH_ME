@@ -8,8 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { LocalStorage, requestHandler } from "@/utils";
 import { deleteMessage, getChatMessages, getUserChats, sendMessage } from "@/api";
 
-import { CustomWebsocket } from "@/utils/CustomWebsocket";
-
+import { useSocket } from "@/hooks/useSocket";
 const CONNECTED_EVENT = "connected";
 const DISCONNECT_EVENT = "disconnect";
 const JOIN_CHAT_EVENT = "joinChat";
@@ -24,8 +23,7 @@ const MESSAGE_DELETE_EVENT = "messageDeleted";
 
 const Chat = () => {
   const { user } = useAuth();
-  const socket = new CustomWebsocket("ws://localhost:8080");
-
+  const socket = useSocket();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Define state variables and their initial values using 'useState'
@@ -277,7 +275,30 @@ const Chat = () => {
     setChats((prev) => prev.filter((c) => c._id !== chat._id));
   };
 
+  const onGroupNameChange = (chat: ChatListItemInterface) => {
+    // Check if the chat being changed is the currently active chat
+    if (chat._id === currentChat.current?._id) {
+      // Update the current chat with the new details
+      currentChat.current = chat;
 
+      // Save the updated chat details to local storage
+      LocalStorage.set("currentChat", chat);
+    }
+
+    // Update the list of chats with the new chat details
+    setChats((prev) => [
+      // Map through the previous chats
+      ...prev.map((c) => {
+        // If the current chat in the map matches the chat being changed, return the updated chat
+        if (c._id === chat._id) {
+          return chat;
+        }
+        // Otherwise, return the chat as-is without any changes
+        return c;
+      }),
+    ]);
+  };
+  
   useEffect(() => {
     getChats();
     const _currentChat = LocalStorage.get("currentChat");
@@ -297,46 +318,39 @@ const Chat = () => {
     // If the socket isn't initialized, we don't set up listeners.
     if (!socket) return;
 
-    // Set up event listeners for various socket events:
-    // Listener for when the socket connects.
-    socket.on(CONNECTED_EVENT, onConnect);
-    // Listener for when the socket disconnects.
-    socket.on(DISCONNECT_EVENT, onDisconnect);
-    // Listener for when a user is typing.
-    socket.on(TYPING_EVENT, handleOnSocketTyping);
-    // Listener for when a user stops typing.
-    socket.on(STOP_TYPING_EVENT, handleOnSocketStopTyping);
-    // Listener for when a new message is received.
-    socket.on(MESSAGE_RECEIVED_EVENT, onMessageReceived);
-    // Listener for the initiation of a new chat.
-    socket.on(NEW_CHAT_EVENT, onNewChat);
-    // Listener for when a user leaves a chat.
-    socket.on(LEAVE_CHAT_EVENT, onChatLeave);
-    // Listener for when a group's name is updated.
-    // socket.on(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
-    //Listener for when a message is deleted
-    socket.on(MESSAGE_DELETE_EVENT, onMessageDelete);
-    // When the component using this hook unmounts or if `socket` or `chats` change:
-    return () => {
-      // Remove all the event listeners we set up to avoid memory leaks and unintended behaviors.
-      socket.off(CONNECTED_EVENT, onConnect);
-      socket.off(DISCONNECT_EVENT, onDisconnect);
-      socket.off(TYPING_EVENT, handleOnSocketTyping);
-      socket.off(STOP_TYPING_EVENT, handleOnSocketStopTyping);
-      socket.off(MESSAGE_RECEIVED_EVENT, onMessageReceived);
-      socket.off(NEW_CHAT_EVENT, onNewChat);
-      socket.off(LEAVE_CHAT_EVENT, onChatLeave);
-      // socket.off(UPDATE_GROUP_NAME_EVENT, onGroupNameChange);
-      socket.off(MESSAGE_DELETE_EVENT, onMessageDelete);
-    };
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
 
-    // Note:
-    // The `chats` array is used in the `onMessageReceived` function.
-    // We need the latest state value of `chats`. If we don't pass `chats` in the dependency array,
-    // the `onMessageReceived` will consider the initial value of the `chats` array, which is empty.
-    // This will not cause infinite renders because the functions in the socket are getting mounted and not executed.
-    // So, even if some socket callbacks are updating the `chats` state, it's not
-    // updating on each `useEffect` call but on each socket call.
+      switch(message.type){
+        case CONNECTED_EVENT:
+          onConnect();
+          break;
+        case DISCONNECT_EVENT: 
+          onDisconnect();
+          break;
+        case TYPING_EVENT:
+          handleOnSocketTyping(message.payload.chatId);
+          break;
+        case STOP_TYPING_EVENT:
+          handleOnSocketStopTyping(message.payload.chatId);
+          break;
+        case MESSAGE_RECEIVED_EVENT:
+          onMessageReceived(message.payload.message);
+          break;
+        case NEW_CHAT_EVENT:
+          onNewChat(message.payload.chat);
+          break;
+        case LEAVE_CHAT_EVENT:
+          onChatLeave(message.payload.chat);
+          break;
+        case UPDATE_GROUP_NAME_EVENT:
+          onGroupNameChange(message.payload.chat);
+          break;
+        case MESSAGE_DELETE_EVENT:
+          onMessageDelete(message.payload.message);
+          break;
+      }
+    }
   }, [socket, chats]);
   
   return (

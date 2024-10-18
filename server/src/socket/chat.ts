@@ -1,23 +1,46 @@
-import {randomUUID} from "crypto";
-import { User } from "./socketManager";
+import { randomUUID } from "crypto";
+import { socketManager } from "./socketManager";
+import { ChatMessages } from "./messages";
 
-export class Chat{
-
+export class Chat {
   public chatId: string;
-  private participants: User[];
-  constructor(participant: User[],chatId?:string) {
+  private participants: string[];
+  constructor(participant: string[], chatId?: string) {
     this.participants = participant;
     this.chatId = chatId ?? randomUUID();
   }
-  addUser(user:User){
-    this.participants.push(user);
+
+  addParticipant(userId: string) {
+    this.participants.push(userId);
   }
 
-  removeUser(user: User){
-    this.participants = this.participants.filter(participant => participant !== user);
+  deleteMessage(chatId: string, messageId: string) {
+    socketManager.broadcast(
+      chatId,
+      JSON.stringify({
+        type: ChatMessages.MESSAGE_DELETE_EVENT,
+        payload: {
+          chatId,
+          messageId,
+        },
+      }),
+    );
   }
 
-  broadcast(message:string){
-    this.participants.forEach(participant => participant.socket.send(message));
+  sendMessage(chatId: string, message: string) {
+    socketManager.broadcast(
+      chatId,
+      JSON.stringify({
+        type: ChatMessages.MESSAGE_RECEIVED_EVENT,
+        payload: {
+          message,
+        },
+      }),
+    );
+  }
+
+  removeParticipant(userId: string) {
+    this.participants = this.participants.filter((user) => user !== userId);
+    socketManager.removeUser(userId);
   }
 }
